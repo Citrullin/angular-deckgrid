@@ -34,7 +34,6 @@ angular.module('akoenig.deckgrid').factory('Deckgrid', [
 
             this.$$scope = scope;
             this.$$scope.columns = [];
-
             //
             // The layout configuration will be parsed from
             // the pseudo "before element." There you have to save all
@@ -42,12 +41,17 @@ angular.module('akoenig.deckgrid').factory('Deckgrid', [
             //
             this.$$scope.layout = this.$$getLayout();
 
-            this.$$createColumns();
+            this.$$createColumns(false);
 
             //
             // Register model change.
             //
-            watcher = this.$$scope.$watchCollection('model', this.$$onModelChange.bind(this));
+            watcher =
+                [
+                    this.$$scope.$watchCollection('model', this.$$onModelChange.bind(this)),
+                    this.$$scope.$watchCollection('orderby', this.$$onOrderFilterChange.bind(this)),
+                    this.$$scope.$watchCollection('filter', this.$$onOrderFilterChange.bind(this))
+                ];
 
             this.$$watchers.push(watcher);
 
@@ -147,7 +151,7 @@ angular.module('akoenig.deckgrid').factory('Deckgrid', [
          * NOTE that calling this method will trigger a complete template "redraw".
          *
          */
-        Deckgrid.prototype.$$createColumns = function $$createColumns () {
+        Deckgrid.prototype.$$createColumns = function $$createColumns (OrderOrFilter) {
             var self = this;
 
             if (!this.$$scope.layout) {
@@ -157,16 +161,34 @@ angular.module('akoenig.deckgrid').factory('Deckgrid', [
 
             this.$$scope.columns = [];
 
-            angular.forEach(this.$$scope.model, function onIteration (card, index) {
-                var column = (index % self.$$scope.layout.columns) | 0;
-
-                if (!self.$$scope.columns[column]) {
-                    self.$$scope.columns[column] = [];
+            if(!OrderOrFilter){
+                angular.forEach(this.$$scope.model, function onIteration (card, index) {
+                    var column = (index % self.$$scope.layout.columns) | 0;
+                    if (!self.$$scope.columns[column]) {
+                        self.$$scope.columns[column] = [];
+                    }
+                    card.$index = index;
+                    self.$$scope.columns[column].push(card);
+                });
+            }else{
+                if(this.$$scope.orderby.indexOf('-') === -1){
+                    this.$$scope.model.sort(function(a,b) {
+			 return parseFloat(a[self.$$scope.orderby]) - parseFloat(b[self.$$scope.orderby]) } );
+                }else{
+                    var key = this.$$scope.orderby.replace('-', '');
+                    this.$$scope.model.sort(function(a,b) {
+                    return parseFloat(b[key]) - parseFloat(a[key]) } );
                 }
-
-                card.$index = index;
-                self.$$scope.columns[column].push(card);
-            });
+                console.log(this.$$scope.model);
+                    angular.forEach(this.$$scope.model, function onIteration (card, index) {
+                        var column = (index % self.$$scope.layout.columns) | 0;
+                        if (!self.$$scope.columns[column]) {
+                            self.$$scope.columns[column] = [];
+                        }
+                        card.$index = index;
+                        self.$$scope.columns[column].push(card);
+                    });
+            }
         };
 
         /**
@@ -223,7 +245,7 @@ angular.module('akoenig.deckgrid').factory('Deckgrid', [
                 self.$$scope.layout = layout;
 
                 self.$$scope.$apply(function onApply () {
-                    self.$$createColumns();
+                    self.$$createColumns(false);
                 });
             }
         };
@@ -241,8 +263,23 @@ angular.module('akoenig.deckgrid').factory('Deckgrid', [
             oldModel = oldModel || [];
 
             if (!angular.equals(oldModel, newModel)) {
-                self.$$createColumns();
+                self.$$createColumns(false);
             }
+        };
+
+        /**
+         * @private
+         *
+         * Event that will be triggered when the filter or orderBy has changed.
+         *
+         */
+        Deckgrid.prototype.$$onOrderFilterChange = function $$onOrderFilterChange (newValue, oldValue) {
+            var self = this;
+
+            if (!angular.equals(oldValue, newValue)) {
+                self.$$createColumns(true);
+            }
+
         };
 
         /**

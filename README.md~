@@ -1,4 +1,4 @@
-# angular-deckgrid-filter-order
+# angular-deckgrid
 Modified Version of Deckgrid by Akoenig
 
 With this Version you can use filter and orderBy without any problems. 
@@ -32,7 +32,7 @@ A lightweight masonry-like grid for AngularJS.
 ## Usage
 
 photos (Array with objects)
-orderby (Orderby Model)
+orderby (Filter Model)
 filter (Filter Function)
 
     <select ng-model="orderList">
@@ -54,8 +54,6 @@ For more information about the Usage read the [original Repository](https://gith
 
 * All the [people](https://github.com/akoenig/angular-deckgrid/blob/master/CONTRIBUTORS.md) who made outstanding contributions to the `angular-deckgrid` so far.
 * [AngularJS](http://angularjs.org) Needless to say. You know the beast. One of the best frontend frameworks in the world.
-
-*[Akoening](https://github.com/akoenig/angular-deckgrid) Original Deckgrid without this feature.
 
 ## Author
 
